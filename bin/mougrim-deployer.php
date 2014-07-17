@@ -116,7 +116,7 @@ foreach($versionFiles as $versionFile) {
 	if(!in_array($versionFile, $applicationFiles)) {
 		runShell(
 			"sudo -u " . escapeshellarg($config['user']) .
-				"ln -sfT " . escapeshellarg("$currentLink/{$versionFile}") .
+				" ln -sfT " . escapeshellarg("$currentLink/{$versionFile}") .
 				" " . escapeshellarg("{$config['application-path']}/{$versionFile}")
 		);
 		$linksCreated = true;
@@ -141,7 +141,7 @@ foreach($applicationFiles as $applicationFile) {
 		$linksRemoved = true;
 		runShell(
 			"sudo -u " . escapeshellarg($config['user']) .
-				"rm " . escapeshellarg("{$config['application-path']}/{$applicationFile}")
+				" rm " . escapeshellarg("{$config['application-path']}/{$applicationFile}")
 		);
 	}
 }
