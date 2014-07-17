@@ -11,8 +11,9 @@ Php-mougrim-deployer gives the following benefits:
 ```sh
 # Clone deployer into some path:
 cd /some/path
-git clone git@github.com:mougrim/php-mougrim-deployer.git # Clone php-mougrim-deployer
-export PATH=$PATH:/some/path/php-mougrim-deployer/bin     # Add bin directory to PATH
+git clone git@github.com:mougrim/php-mougrim-deployer.git                 # Clone php-mougrim-deployer
+export PATH=$PATH:/some/path/php-mougrim-deployer/bin                     # Add bin directory to PATH
+echo 'export PATH=$PATH:/some/path/php-mougrim-deployer/bin' >> ~/.bashrc # Add bin directory to PATH permanently
 
 # Clone your application into some path (not application path):
 cd /not/application/path
