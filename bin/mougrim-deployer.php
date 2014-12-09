@@ -7,7 +7,7 @@ array_shift($argv);
 $config = array();
 
 foreach($argv as $param) {
-	if(preg_match('/^--([\w-]+?)=(.*)$/', $param, $matches)) {
+	if(preg_match('/^--([\w-]+?)=(.*)$/s', $param, $matches)) {
 		$config[$matches[1]] = $matches[2];
 	}
 }
@@ -81,20 +81,14 @@ if(file_exists($versionPath)) {
 runShell("sudo -u " . escapeshellarg($config['user']) . " mkdir " . escapeshellarg($versionPath));
 
 runShell(
-	"git archive " . escapeshellarg($config['tag']) . " | " .
-		"sudo -u " . escapeshellarg($config['user']) . " tar -x -C " . escapeshellarg($versionPath)
+'tar -c ./ --exclude=.git |\\
+	sudo -u ' . escapeshellarg($config['user']) . ' tar -x -C ' . escapeshellarg($versionPath)
 );
 
 if(array_key_exists('pre-switch-script', $config)) {
 	logInfo("Run pre switch script");
 	$preSwitchScript = $versionPath . "/" . $config['pre-switch-script'];
-	if(!is_file($preSwitchScript)) {
-		throw new RuntimeException("Pre switch script '{$preSwitchScript}' not found");
-	}
-	if(!is_executable($preSwitchScript)) {
-		runShell("sudo chmod +x " . escapeshellarg($preSwitchScript));
-	}
-	runShell(escapeshellcmd($preSwitchScript));
+	runShell($preSwitchScript);
 }
 
 $applicationFiles = scandir($config['application-path']);
@@ -153,13 +147,7 @@ if($linksRemoved === false) {
 if(array_key_exists('post-switch-script', $config)) {
 	logInfo("Run post switch script");
 	$postSwitchScript = $versionPath . "/" . $config['post-switch-script'];
-	if(!is_file($postSwitchScript)) {
-		throw new RuntimeException("Post switch script '{$postSwitchScript}' not found");
-	}
-	if(!is_executable($postSwitchScript)) {
-		runShell("sudo chmod +x " . escapeshellarg($postSwitchScript));
-	}
-	runShell(escapeshellcmd($postSwitchScript));
+	runShell($postSwitchScript);
 }
 
 logInfo("Successful complete");
