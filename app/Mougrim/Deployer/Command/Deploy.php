@@ -106,7 +106,7 @@ class Deploy extends AbstractCommand
             }
 
             $this->getLogger()->info("Remove exists directory {$versionPath}");
-            $this->getShellHelper()->rm($versionPath, true);
+            $this->getShellHelper()->sudo()->rm($versionPath, true);
         }
         $this->getShellHelper()->sudo($user)->mkdir($versionPath);
 
