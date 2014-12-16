@@ -1,0 +1,64 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "360bbaa14f92aa64e8da58f2e0d9f9d1",
+    "packages": [
+        {
+            "name": "mitallast/php-logger",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mitallast/php-logger.git",
+                "reference": "d59e49d1b20feaada68f397b55438d56b1613dc5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mitallast/php-logger/zipball/d59e49d1b20feaada68f397b55438d56b1613dc5",
+                "reference": "d59e49d1b20feaada68f397b55438d56b1613dc5",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.7"
+            },
+            "require-dev": {
+                "ext-pcntl": "*",
+                "ext-runkit": "*",
+                "phpunit/phpunit": "3.7.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Logger": [
+                        "src/",
+                        "src/appenders",
+                        "src/layouts"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "mitallast",
+                    "email": "mitallast@gmail.com"
+                }
+            ],
+            "description": "Simple and fast php logging library",
+            "time": "2013-11-25 09:29:19"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "platform": {
+        "php": ">=5.3.0"
+    },
+    "platform-dev": []
+}

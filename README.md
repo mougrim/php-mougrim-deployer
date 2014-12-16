@@ -12,8 +12,12 @@ Php-mougrim-deployer gives the following benefits:
 # Clone deployer into some path:
 cd /some/path
 git clone git@github.com:mougrim/php-mougrim-deployer.git                 # Clone php-mougrim-deployer
+cd php-mougrim-deployer
+composer.phar install                                                     # Resolve dependencies
 export PATH=$PATH:/some/path/php-mougrim-deployer/bin                     # Add bin directory to PATH
 echo 'export PATH=$PATH:/some/path/php-mougrim-deployer/bin' >> ~/.bashrc # Add bin directory to PATH permanently
+
+mougrim-deployer.php help                                                 # For see help
 
 # Clone your application into some path (not application path):
 cd /not/application/path
@@ -23,24 +27,24 @@ cd my-application
 ### Deploy
 ```sh
 # Deploy your application:
-mougrim-deployer.php \
+mougrim-deployer.php deploy \
 	--tag=v1.3.2 \                                  # git tag - version of release
 	--application-path=/path/to/folder/to/deploy \  # path to application
 	--user=myapplicationuser \                      # web server user
 	--group=myapplicationgroup \                    # web server group
-	--pre-switch-script=bin/pre-switch.php \       # before switch version script (optional)
-	--post-switch-script=bin/post-switch.php       # after switch version scrpit (optional)
+	--before-switch-script=bin/before-switch.php \  # before switch version script (optional)
+	--after-switch-script=bin/after-switch.php      # after switch version scrpit (optional)
 ```
 You can create sh-script (example bin/my-deploy-script.sh), for simplify deploy:
 ```sh
 #!/bin/sh
-mougrim-deployer.php \
+mougrim-deployer.php deploy \
 	--tag=$1 \
 	--application-path=/path/to/folder/to/deploy \
 	--user=myapplicationuser \
 	--group=myapplicationgroup \
-	--pre-switch-script=bin/pre-switch.php \
-	--post-switch-script=bin/post-switch.php
+	--before-switch-script=bin/before-switch.php \
+	--after-switch-script=bin/after-switch.php
 ```
 Use:
 ```sh
@@ -79,7 +83,7 @@ drwxr-xr-x 2 myapplicationuser myapplicationgroup 4,0K jul  15 09:06 bin
 lrwxrwxrwx 1 myapplicationuser myapplicationgroup   41 jul  15 09:13 logs -> /path/to/folder/to/deploy/logs
 drwxr-xr-x 9 myapplicationuser myapplicationgroup 4,0K jul  15 09:06 public
 ```
-Symlink logs and directory /path/to/folder/to/deploy/logs created in bin/pre-switch.php (your script).
+Symlink logs and directory /path/to/folder/to/deploy/logs created in bin/before-switch.php (your script).
 
 Application content:
 ```sh

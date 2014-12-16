@@ -1,0 +1,21 @@
+{
+    "name": "mougrim/deployer",
+    "description": "Simple deploy your project",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mougrim",
+            "email": "rinat@mougrim.ru"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "mitallast/php-logger": "1.0.2"
+    },
+    "autoload": {
+        "psr-0": {
+            "Mougrim\\Deployer": "app"
+        }
+    }
+}
