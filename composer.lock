@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "360bbaa14f92aa64e8da58f2e0d9f9d1",
+    "hash": "b708a6cf40d40dd880453ab26ca0a493",
     "packages": [
         {
             "name": "mitallast/php-logger",
@@ -57,8 +57,9 @@
     "minimum-stability": "stable",
     "stability-flags": [],
     "prefer-stable": false,
+    "prefer-lowest": false,
     "platform": {
-        "php": ">=5.3.0"
+        "php": ">=5.5.0"
     },
     "platform-dev": []
 }

@@ -17,5 +17,8 @@
         "psr-0": {
             "Mougrim\\Deployer": "app"
         }
-    }
+    },
+    "bin": [
+        "bin/mougrim-deployer.php"
+    ]
 }
