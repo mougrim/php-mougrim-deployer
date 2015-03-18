@@ -32,7 +32,8 @@ mougrim-deployer.php deploy \
 	--application-path=/path/to/folder/to/deploy \  # path to application
 	--user=myapplicationuser \                      # web server user
 	--group=myapplicationgroup \                    # web server group
-	--before-switch-script=bin/before-switch.php \  # before switch version script (optional)
+	--before-deploy-script=bin/before-deploy.php \  # before deploy version files script (optional)
+	--after-deploy-script=bin/after-deploy.php \    # after deploy version files script (optional)
 	--after-switch-script=bin/after-switch.php      # after switch version scrpit (optional)
 ```
 You can create sh-script (example bin/my-deploy-script.sh), for simplify deploy:
@@ -43,7 +44,8 @@ mougrim-deployer.php deploy \
 	--application-path=/path/to/folder/to/deploy \
 	--user=myapplicationuser \
 	--group=myapplicationgroup \
-	--before-switch-script=bin/before-switch.php \
+	--before-deploy-script=bin/before-deploy.php \
+	--after-deploy-script=bin/after-deploy.php \
 	--after-switch-script=bin/after-switch.php
 ```
 Use:
@@ -66,9 +68,19 @@ drwxr-xr-x 7 myapplicationuser myapplicationgroup 4,0K jul  15 09:13 v1.3.2
 ```
 Symlink current is point to current version.
 
-Yur can switch to previous version:
+Yur can write switch script (bin/my-switch-script.sh):
 ```sh
-sudo -u 'myapplicationuser' ln -sfT '/home/sites/manufacturer-test-deploy/versions/v0.0.4' '/home/sites/manufacturer-test-deploy/versions/current'
+#!/bin/sh
+mougrim-deployer.php deploy switch \
+	--tag=$1 \
+	--application-path=/path/to/folder/to/deploy \
+	--user=myapplicationuser \
+	--group=myapplicationgroup \
+	--after-switch-script=bin/after-switch.php
+```
+And switch to previous version:
+```sh
+bin/my-switch-script.sh v0.0.4
 ```
 
 Version content:

@@ -48,8 +48,16 @@ class AbstractCommand
         return $this->id;
     }
 
-    public function __construct($id)
+    private $application;
+
+    protected function getApplication()
     {
+        return $this->application;
+    }
+
+    public function __construct(Application $application, $id)
+    {
+        $this->application = $application;
         $this->id = $id;
     }
 
@@ -63,9 +71,28 @@ class AbstractCommand
         return $this->actionId;
     }
 
+    static public function getRawRequestParamsInfo()
+    {
+        return [];
+    }
+
     static public function getRequestParamsInfo()
     {
-        return array();
+        $requestParamsInfo = static::getRawRequestParamsInfo();
+        foreach (static::getActionsSubActions() as $actionId => $subActions) {
+            if (!isset($requestParamsInfo[$actionId])) {
+                $requestParamsInfo[$actionId] = [];
+            }
+            foreach ($subActions as $subActionId) {
+                if (isset($requestParamsInfo[$subActionId])) {
+                    $requestParamsInfo[$actionId] = array_merge(
+                        $requestParamsInfo[$subActionId],
+                        $requestParamsInfo[$actionId]
+                    );
+                }
+            }
+        }
+        return $requestParamsInfo;
     }
 
     static public function getInfo()
@@ -80,7 +107,7 @@ class AbstractCommand
 
     static public function getActionsIdList()
     {
-        $actions = array();
+        $actions = [];
         $methods = get_class_methods(get_called_class());
         foreach ($methods as $method) {
             if (preg_match('/^action([A-Z][a-zA-Z0-9]*)$/', $method, $matches)) {
@@ -89,6 +116,21 @@ class AbstractCommand
         }
 
         return $actions;
+    }
+
+    static public function getActionsSubActions()
+    {
+        return [];
+    }
+
+    static public function getSubActions($actionId)
+    {
+        $actionsSubActions = static::getActionsSubActions();
+        if (isset($actionsSubActions[$actionId])) {
+            return $actionsSubActions[$actionId];
+        } else {
+            return [];
+        }
     }
 
     private $requestParams;
@@ -148,7 +190,7 @@ class AbstractCommand
         if (isset($actionsRequestParamsInfo[$actionId])) {
             $requestParamsInfo = $actionsRequestParamsInfo[$actionId];
         } else {
-            $requestParamsInfo = array();
+            $requestParamsInfo = [];
         }
 
         if (isset($actionsRequestParamsInfo['defaultParams'])) {
@@ -164,7 +206,7 @@ class AbstractCommand
             throw new \RuntimeException("Unknown params '" . implode("', '", $unknownParams) . "'");
         }
 
-        $emptyRequireParams = array();
+        $emptyRequireParams = [];
         foreach ($requestParamsInfo as $paramName => $paramInfo) {
             if (!isset($requestParams[$paramName])) {
                 if (isset($paramInfo['require']) && $paramInfo['require']) {
@@ -178,7 +220,7 @@ class AbstractCommand
                 if (isset($paramInfo['multiple']) && $paramInfo['multiple']) {
                     if (!is_array($requestParams[$paramName])) {
                         $paramValue                  = $requestParams[$paramName];
-                        $requestParams[$paramName]   = array();
+                        $requestParams[$paramName]   = [];
                         $requestParams[$paramName][] = $paramValue;
                     }
                 } else {

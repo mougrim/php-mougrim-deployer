@@ -9,45 +9,103 @@ use Mougrim\Deployer\Kernel\AbstractCommand;
  */
 class Deploy extends AbstractCommand
 {
-    static public function getRequestParamsInfo()
+    static public function getActionsSubActions()
     {
-        return array(
-            'index' => array(
-                'tag'                  => array(
-                    'require' => true,
-                    'info'    => 'git tag',
-                ),
-                'application-path'     => array(
+        return [
+            'index' => [
+                'init',
+                'deploy',
+                'switch',
+            ],
+        ];
+    }
+
+    static public function getRawRequestParamsInfo()
+    {
+        return [
+            'init' => [
+                'application-path'     => [
                     'require' => true,
                     'info'    => 'destination path',
-                ),
-                'user'                 => array(
+                ],
+                'user'                 => [
                     'require' => true,
                     'info'    => 'linux user',
-                ),
-                'group'                => array(
+                ],
+                'group'                => [
                     'require' => true,
                     'info'    => 'linux group',
-                ),
-                'init-script'          => array(
+                ],
+            ],
+            'deploy' => [
+                'tag'                  => [
+                    'require' => true,
+                    'info'    => 'git tag',
+                ],
+                'application-path'     => [
+                    'require' => true,
+                    'info'    => 'destination path',
+                ],
+                'user'                 => [
+                    'require' => true,
+                    'info'    => 'linux user',
+                ],
+                'group'                => [
+                    'require' => true,
+                    'info'    => 'linux group',
+                ],
+                'before-deploy-script'    => [
                     'multiple' => true,
                     'info'     => 'Scripts, run after git checkout tag',
-                ),
-                'before-switch-script' => array(
+                ],
+                'after-deploy-script' => [
                     'multiple' => true,
-                    'info'     => 'Scripts, run before switch to new tag',
-                ),
-                'after-switch-script'  => array(
+                    'info'     => 'Scripts, run after deploy to new tag',
+                ],
+            ],
+            'switch' => [
+                'tag'                  => [
+                    'require' => true,
+                    'info'    => 'git tag',
+                ],
+                'application-path'     => [
+                    'require' => true,
+                    'info'    => 'destination path',
+                ],
+                'user'                 => [
+                    'require' => true,
+                    'info'    => 'linux user',
+                ],
+                'group'                => [
+                    'require' => true,
+                    'info'    => 'linux group',
+                ],
+                'after-switch-script'  => [
                     'multiple' => true,
                     'info'     => 'Scripts, run after switch to new tag',
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
     static public function getInfo()
     {
         return 'deploy your project';
+    }
+
+    protected function getVersionsPath($applicationPath)
+    {
+        return "{$applicationPath}/versions";
+    }
+
+    protected function getCurrentLink($versionsPath)
+    {
+        return "{$versionsPath}/current";
+    }
+
+    protected function getVersionPath($versionsPath, $tag)
+    {
+        return "{$versionsPath}/{$tag}";
     }
 
     /**
@@ -60,37 +118,52 @@ class Deploy extends AbstractCommand
      */
     public function actionIndex()
     {
-        $applicationPath     = $this->getRequestParam('application-path');
-        $user                = $this->getRequestParam('user');
-        $group               = $this->getRequestParam('group');
-        $tag                 = $this->getRequestParam('tag');
-        $initScripts         = $this->getRequestParam('init-script');
-        $beforeSwitchScripts = $this->getRequestParam('before-switch-script');
-        $afterSwitchScripts  = $this->getRequestParam('after-switch-script');
-        $versionsPath        = "{$applicationPath}/versions";
-        $currentLink         = "{$versionsPath}/current";
+        $this->actionInit();
+        $this->actionDeploy();
+        $this->actionSwitch();
+    }
 
+    public function actionInit()
+    {
+        $applicationPath = $this->getRequestParam('application-path');
+        $user            = $this->getRequestParam('user');
+        $group           = $this->getRequestParam('group');
+        $versionsPath    = $this->getVersionsPath($applicationPath);
+        $this->getLogger()->info("Init...");
         if (!file_exists($applicationPath)) {
-            $this->getLogger()->info("Init");
             $this->getShellHelper()->sudo()->mkdir($applicationPath, true);
             $this->getShellHelper()->sudo()->mkdir($versionsPath);
             $this->getShellHelper()->sudo()->chown($user, $group, $applicationPath, true);
+            $this->getLogger()->info("Init completed");
+        } else {
+            $this->getLogger()->info("Already inited");
         }
+    }
 
-        $this->getLogger()->info("Deploy");
+    public function actionDeploy()
+    {
+        $applicationPath     = $this->getRequestParam('application-path');
+        $user                = $this->getRequestParam('user');
+        $tag                 = $this->getRequestParam('tag');
+        $beforeDeployScripts = $this->getRequestParam('before-deploy-script');
+        $afterDeployScripts  = $this->getRequestParam('after-deploy-script');
+        $versionsPath        = $this->getVersionsPath($applicationPath);
+        $currentLink         = $this->getCurrentLink($versionsPath);
+
+        $this->getLogger()->info("Pre deploy");
         $this->getShellHelper()->runCommand("git status");
         $this->getShellHelper()->runCommand("git fetch origin -p");
         // try checkout that to make sure that tag exists
         $this->getShellHelper()->runCommand("git checkout " . escapeshellarg($tag));
 
-        if ($initScripts !== null) {
-            $this->getLogger()->info("Run init scripts");
-            foreach ($initScripts as $initScript) {
-                $this->getShellHelper()->runCommand($initScript);
+        if ($beforeDeployScripts !== null) {
+            $this->getLogger()->info("Run before-deploy scripts");
+            foreach ($beforeDeployScripts as $beforeDeployScript) {
+                $this->getShellHelper()->runCommand($beforeDeployScript);
             }
         }
 
-        $versionPath = "{$versionsPath}/{$tag}";
+        $versionPath = $this->getVersionPath($versionsPath, $tag);
         if (file_exists($versionPath)) {
             if (realpath($currentLink) === $versionPath) {
                 $this->getLogger()->info(
@@ -102,6 +175,7 @@ class Deploy extends AbstractCommand
             $input = trim(fgets(STDIN));
             if ($input !== "yes") {
                 $this->getLogger()->info("Cancel");
+                $this->getApplication()->end(0);
                 return;
             }
 
@@ -112,23 +186,36 @@ class Deploy extends AbstractCommand
 
         $this->getShellHelper()->runCommand(
             'tar -c ./ --exclude=.git |\\
-	sudo -u ' . escapeshellarg($user) . ' tar -x -C ' . escapeshellarg($versionPath)
+    sudo -u ' . escapeshellarg($user) . ' tar -x -C ' . escapeshellarg($versionPath)
         );
 
-        if ($beforeSwitchScripts !== null) {
-            $this->getLogger()->info("Run pre switch scripts");
-            foreach ($beforeSwitchScripts as $beforeSwitchScript) {
-                $beforeSwitchScript = strtr($beforeSwitchScript, array('{{ version_path }}' => $versionPath));
-                $this->getShellHelper()->runCommand($beforeSwitchScript);
+        if ($afterDeployScripts !== null) {
+            $this->getLogger()->info("Run after deploy scripts");
+            foreach ($afterDeployScripts as $afterDeployScript) {
+                $afterDeployScript = strtr($afterDeployScript, ['{{ version_path }}' => $versionPath]);
+                $this->getShellHelper()->runCommand($afterDeployScript);
             }
         }
 
+        $this->getLogger()->info("Deploy complete");
+    }
+
+    public function actionSwitch()
+    {
+        $applicationPath     = $this->getRequestParam('application-path');
+        $user                = $this->getRequestParam('user');
+        $tag                 = $this->getRequestParam('tag');
+        $afterSwitchScripts  = $this->getRequestParam('after-switch-script');
+        $versionsPath        = $this->getVersionsPath($applicationPath);
+        $currentLink         = $this->getCurrentLink($versionsPath);
+
         $applicationFiles = scandir($applicationPath);
 
+        $versionPath = $this->getVersionPath($versionsPath, $tag);
         $versionFiles = scandir($versionPath);
 
         foreach ([&$applicationFiles, &$versionFiles] as &$files) {
-            foreach (array_merge([".", "..", "versions"]) as $excludeFile) {
+            foreach ([".", "..", "versions"] as $excludeFile) {
                 $key = array_search($excludeFile, $files);
                 if ($key !== false) {
                     unset($files[$key]);
@@ -175,7 +262,7 @@ class Deploy extends AbstractCommand
         if ($afterSwitchScripts !== null) {
             $this->getLogger()->info("Run after switch scripts");
             foreach ($afterSwitchScripts as $afterSwitchScript) {
-                $afterSwitchScript = strtr($afterSwitchScript, array('{{ version_path }}' => $versionPath));
+                $afterSwitchScript = strtr($afterSwitchScript, ['{{ version_path }}' => $versionPath]);
                 $this->getShellHelper()->runCommand($afterSwitchScript);
             }
         }

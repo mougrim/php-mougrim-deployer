@@ -14,15 +14,15 @@ class Help extends AbstractCommand
         return 'this command';
     }
 
-    static public function getRequestParamsInfo()
+    static public function getRawRequestParamsInfo()
     {
-        return array(
-            'defaultParams' => array(
-                0 => array(
+        return [
+            'defaultParams' => [
+                0 => [
                     'info' => 'action name',
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
     protected $loggerName = 'help';
@@ -38,7 +38,7 @@ class Help extends AbstractCommand
         }
     }
 
-    public function __call($methodName, array $params = array())
+    public function __call($methodName, array $params = [])
     {
         if (substr($methodName, 0, 6) !== 'action') {
             throw new \RuntimeException('Call to undefined method ' . get_class() . '::' . $methodName . '()');
@@ -96,7 +96,7 @@ class Help extends AbstractCommand
 
     static private function getAvailableCommands()
     {
-        $availableCommands = array();
+        $availableCommands = [];
         foreach (glob(__DIR__ . '/../Command/*') as $file) {
             $commandName         = basename($file, ".php");
             $availableCommands[] = lcfirst($commandName);

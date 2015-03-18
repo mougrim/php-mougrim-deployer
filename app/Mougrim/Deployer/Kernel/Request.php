@@ -59,7 +59,7 @@ class Request
     {
         $rawRequest = $this->getRawRequest();
         array_shift($rawRequest);
-        $requestParams = array();
+        $requestParams = [];
 
         foreach ($rawRequest as $param) {
             if (preg_match('/^--([\w-]+?)=(.*)$/s', $param, $matches)) {
