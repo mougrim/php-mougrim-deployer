@@ -3,7 +3,15 @@
 /**
  * @author Mougrim <rinat@mougrim.ru>
  */
-require_once __DIR__ . '/../vendor/autoload.php';
+// require composer autoloader
+$autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    /** @noinspection PhpIncludeInspection */
+    require_once $autoloadPath;
+} else {
+    /** @noinspection PhpIncludeInspection */
+    require_once dirname(dirname(dirname(__DIR__))) . '/autoload.php';
+}
 
 use Mougrim\Deployer\Kernel\Request;
 use Mougrim\Deployer\Kernel\Application;
