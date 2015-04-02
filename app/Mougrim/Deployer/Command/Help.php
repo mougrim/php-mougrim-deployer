@@ -83,7 +83,9 @@ class Help extends AbstractCommand
 
             foreach ($commandRequestParamsInfo[$actionId] as $paramName => $paramInfo) {
                 $this->getLogger()->info("\t{$paramName}");
-                $this->getLogger()->info("\t\t{$paramInfo['info']}");
+                foreach(explode("\n", $paramInfo['info']) as $paramInfoLine) {
+                    $this->getLogger()->info("\t\t{$paramInfoLine}");
+                }
                 $this->getLogger()->info("");
             }
         }

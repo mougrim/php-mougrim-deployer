@@ -68,6 +68,9 @@ class AbstractCommand
      */
     public function getActionId()
     {
+        if ($this->actionId === null) {
+            throw new \RuntimeException("action not run");
+        }
         return $this->actionId;
     }
 
@@ -159,14 +162,67 @@ class AbstractCommand
         $this->requestParams = $requestParams;
     }
 
+    public function addRequestParam($name, $value)
+    {
+        if ($this->requestParams === null) {
+            throw new \RuntimeException("requestParams is not set");
+        }
+
+        $this->requestParams[$name] = $value;
+    }
+
     public function getRequestParam($name)
     {
         $requestParams = $this->getRequestParams();
-        if (!isset($requestParams[$name]) && !array_key_exists($name, $requestParams)) {
+        if (!$this->requestParamExists($name)) {
             throw new \RuntimeException("Unknown param '{$name}'");
         }
 
         return $requestParams[$name];
+    }
+
+    public function requestParamExists($name) {
+        $requestParams = $this->getRequestParams();
+        return isset($requestParams[$name]) || array_key_exists($name, $requestParams);
+    }
+
+    protected function getAdditionalParams()
+    {
+        return [];
+    }
+
+    private $params = [];
+
+    public function getParams()
+    {
+        if (!isset($this->params[$this->getActionId()])) {
+            $params = $this->getRequestParams();
+            $additionalParams = $this->getAdditionalParams();
+            $subActions = array_merge(static::getSubActions($this->getActionId()), [$this->getActionId()]);
+            foreach ($subActions as $actionId) {
+                if (isset($additionalParams[$actionId])) {
+                    $params = array_merge($params, $additionalParams[$actionId]);
+                }
+            }
+            $this->params[$this->getActionId()] = $params;
+        }
+
+        return $this->params[$this->getActionId()];
+    }
+
+    public function getParam($name)
+    {
+        $params = $this->getParams();
+        if (!$this->paramExists($name)) {
+            throw new \RuntimeException("Unknown param '{$name}'");
+        }
+
+        return $params[$name];
+    }
+
+    public function paramExists($name) {
+        $params = $this->getParams();
+        return isset($params[$name]) || array_key_exists($name, $params);
     }
 
     public function run($actionId)
@@ -211,6 +267,7 @@ class AbstractCommand
             if (!isset($requestParams[$paramName])) {
                 if (isset($paramInfo['require']) && $paramInfo['require']) {
                     $emptyRequireParams[] = $paramName;
+                    continue;
                 } elseif (isset($paramInfo['default']) && $paramInfo['default']) {
                     $requestParams[$paramName] = $paramInfo['default'];
                 }

@@ -36,9 +36,13 @@ class ShellHelper
             $this->sudo     = false;
             $this->sudoUser = null;
         }
-        $this->getLogger()->info("$ {$command}");
-        system($command, $result);
-        $this->getLogger()->info("$");
+        $this->getLogger()->info("Run '{$command}'");
+        exec($command, $output, $result);
+        if (!empty($output)) {
+            $this->getLogger()->info("Output:\n" . implode("\n", $output));
+        } else {
+            $this->getLogger()->info("Empty output");
+        }
         if ($result !== 0) {
             throw new \RuntimeException("Command '{$command}' executed with error code: {$result}");
         }

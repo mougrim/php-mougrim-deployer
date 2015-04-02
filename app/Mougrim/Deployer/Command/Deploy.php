@@ -1,6 +1,7 @@
 <?php
 namespace Mougrim\Deployer\Command;
 
+use Mougrim\Deployer\Helper\TemplateHelper;
 use Mougrim\Deployer\Kernel\AbstractCommand;
 
 /**
@@ -17,22 +18,27 @@ class Deploy extends AbstractCommand
                 'deploy',
                 'switch',
             ],
+            'dev'   => [
+                'init',
+                'deploy',
+                'switch',
+            ],
         ];
     }
 
     static public function getRawRequestParamsInfo()
     {
         return [
-            'init' => [
-                'application-path'     => [
+            'init'   => [
+                'application-path' => [
                     'require' => true,
                     'info'    => 'destination path',
                 ],
-                'user'                 => [
+                'user'             => [
                     'require' => true,
                     'info'    => 'linux user',
                 ],
-                'group'                => [
+                'group'            => [
                     'require' => true,
                     'info'    => 'linux group',
                 ],
@@ -42,6 +48,14 @@ class Deploy extends AbstractCommand
                     'require' => true,
                     'info'    => 'git tag',
                 ],
+                'skip-git'             => [
+                    'info'    => 'skip git checkout tag, and other work with git for debug or dev deploy',
+                    'default' => false,
+                ],
+                'skip-deploy-files'    => [
+                    'info'    => 'skip deploy files to version dir for debug or dev deploy',
+                    'default' => false,
+                ],
                 'application-path'     => [
                     'require' => true,
                     'info'    => 'destination path',
@@ -54,35 +68,70 @@ class Deploy extends AbstractCommand
                     'require' => true,
                     'info'    => 'linux group',
                 ],
-                'before-deploy-script'    => [
+                'before-deploy-script' => [
                     'multiple' => true,
-                    'info'     => 'Scripts, run after git checkout tag',
+                    'info'     => 'Scripts, run after git checkout tag, not template',
                 ],
-                'after-deploy-script' => [
+                'after-deploy-script'  => [
                     'multiple' => true,
-                    'info'     => 'Scripts, run after deploy to new tag',
+                    'info'     => 'Scripts, run after deploy to new tag, as template',
+                ],
+                'template-files' => [
+                    'multiple' => true,
+                    'info'     => implode(
+                        "\n",
+                        [
+                            'Files, who needs process as templates.',
+                            'Available variables, passed to template:',
+                            "\t- parameters from config;",
+                            "\t- parameters from request;",
+                            "\t- 'versions-path' - versions dir path;",
+                            "\t- 'version-path' - new version dir path;",
+                            "\t- 'current-link-path' - current link path.",
+                            "If we have param variable=value, and template 'Text {{ variable }} other text',",
+                            "then template converted to 'Text value other text'.",
+                            "You can use nested parameters, for example {{ template-parameters.nested-variable }}",
+                            "Template path is also template, for example version-path=/project/versions/v1.0.0",
+                            "and template path '{{ version-path }}/bin/script.sh' will replaces to '/project/versions/v1.0.0/bin/script.sh'",
+                        ]
+                    ),
+                ],
+                'template-parameters' => [
+                    'multiple' => true,
+                    'info'     => "Custom template parameters, passed to templates - files in 'template-files' and commands names",
                 ],
             ],
             'switch' => [
-                'tag'                  => [
+                'tag'                 => [
                     'require' => true,
                     'info'    => 'git tag',
                 ],
-                'application-path'     => [
+                'application-path'    => [
                     'require' => true,
                     'info'    => 'destination path',
                 ],
-                'user'                 => [
+                'user'                => [
                     'require' => true,
                     'info'    => 'linux user',
                 ],
-                'group'                => [
+                'group'               => [
                     'require' => true,
                     'info'    => 'linux group',
                 ],
-                'after-switch-script'  => [
+                'after-switch-script' => [
                     'multiple' => true,
-                    'info'     => 'Scripts, run after switch to new tag',
+                    'info'     => 'Scripts, run after switch to new tag, as template',
+                ],
+                'template-parameters' => [
+                    'multiple' => true,
+                    'info'     => "Parameters, passed to templates - files in 'template-files' and commands names",
+                ],
+            ],
+            'dev'    => [
+                'tag' => [
+                    'require' => false,
+                    'info'    => 'git tag',
+                    'default' => 'dev',
                 ],
             ],
         ];
@@ -93,19 +142,40 @@ class Deploy extends AbstractCommand
         return 'deploy your project';
     }
 
-    protected function getVersionsPath($applicationPath)
+    protected function getAdditionalParams()
     {
-        return "{$applicationPath}/versions";
+        $applicationPath = $this->getRequestParam('application-path');
+        $actionAdditionalParams = [];
+        $actionAdditionalParams['versions-path'] = "{$applicationPath}/versions";
+        if ($this->requestParamExists('tag')) {
+            $tag                              = $this->getRequestParam('tag');
+            $actionAdditionalParams['version-path'] = "{$actionAdditionalParams['versions-path']}/{$tag}";
+        }
+        $actionAdditionalParams['current-link-path'] = "{$actionAdditionalParams['versions-path']}/current";
+
+        $additionalParams = [];
+        foreach (static::getActionsIdList() as $actionId) {
+            $additionalParams[$actionId] = $actionAdditionalParams;
+        }
+        return $additionalParams;
     }
 
-    protected function getCurrentLink($versionsPath)
+    private $templateHelper;
+
+    public function getTemplateHelper()
     {
-        return "{$versionsPath}/current";
+        if ($this->templateHelper === null) {
+            $this->templateHelper = new TemplateHelper();
+            $this->templateHelper->setShellHelper($this->getShellHelper());
+        }
+
+        return $this->templateHelper;
     }
 
-    protected function getVersionPath($versionsPath, $tag)
+    public function runTemplateCommand($command)
     {
-        return "{$versionsPath}/{$tag}";
+        $command = $this->getTemplateHelper()->processTemplateString($command, $this->getParams());
+        $this->getShellHelper()->runCommand($command);
     }
 
     /**
@@ -125,10 +195,10 @@ class Deploy extends AbstractCommand
 
     public function actionInit()
     {
-        $applicationPath = $this->getRequestParam('application-path');
-        $user            = $this->getRequestParam('user');
-        $group           = $this->getRequestParam('group');
-        $versionsPath    = $this->getVersionsPath($applicationPath);
+        $applicationPath = $this->getParam('application-path');
+        $user            = $this->getParam('user');
+        $group           = $this->getParam('group');
+        $versionsPath    = $this->getParam('versions-path');
         $this->getLogger()->info("Init...");
         if (!file_exists($applicationPath)) {
             $this->getShellHelper()->sudo()->mkdir($applicationPath, true);
@@ -142,58 +212,73 @@ class Deploy extends AbstractCommand
 
     public function actionDeploy()
     {
-        $applicationPath     = $this->getRequestParam('application-path');
-        $user                = $this->getRequestParam('user');
-        $tag                 = $this->getRequestParam('tag');
-        $beforeDeployScripts = $this->getRequestParam('before-deploy-script');
-        $afterDeployScripts  = $this->getRequestParam('after-deploy-script');
-        $versionsPath        = $this->getVersionsPath($applicationPath);
-        $currentLink         = $this->getCurrentLink($versionsPath);
+        $user                = $this->getParam('user');
+        $tag                 = $this->getParam('tag');
+        $beforeDeployScripts = $this->getParam('before-deploy-script');
+        $afterDeployScripts  = $this->getParam('after-deploy-script');
+        $isSkipGit           = (boolean) $this->getParam('skip-git');
+        $isSkipDeployFiles   = (boolean) $this->getParam('skip-deploy-files');
+        $currentLink         = $this->getParam('current-link-path');
+        $versionPath         = $this->getParam('version-path');
+        $templateFiles       = $this->getParam('template-files');
 
-        $this->getLogger()->info("Pre deploy");
-        $this->getShellHelper()->runCommand("git status");
-        $this->getShellHelper()->runCommand("git fetch origin -p");
-        // try checkout that to make sure that tag exists
-        $this->getShellHelper()->runCommand("git checkout " . escapeshellarg($tag));
+        $this->getLogger()->info("Before deploy");
+        if (!$isSkipGit) {
+            $this->getShellHelper()->runCommand("git status");
+            $this->getShellHelper()->runCommand("git fetch origin -p");
+            // checkout tag for run actual scripts
+            $this->getShellHelper()->runCommand("git checkout " . escapeshellarg($tag));
+        }
 
         if ($beforeDeployScripts !== null) {
             $this->getLogger()->info("Run before-deploy scripts");
             foreach ($beforeDeployScripts as $beforeDeployScript) {
-                $this->getShellHelper()->runCommand($beforeDeployScript);
+                $this->runTemplateCommand($beforeDeployScript);
             }
         }
 
-        $versionPath = $this->getVersionPath($versionsPath, $tag);
-        if (file_exists($versionPath)) {
-            if (realpath($currentLink) === $versionPath) {
-                $this->getLogger()->info(
-                    "[WARNING] Current link is point to {$versionPath}, are you sure to remove it? (yes/no) [no]"
-                );
-            } else {
-                $this->getLogger()->info("Directory '{$versionPath}' already exists, remove it? (yes/no) [no]");
-            }
-            $input = trim(fgets(STDIN));
-            if ($input !== "yes") {
-                $this->getLogger()->info("Cancel");
-                $this->getApplication()->end(0);
-                return;
-            }
+        if (!$isSkipDeployFiles) {
+            if (file_exists($versionPath)) {
+                if (realpath($currentLink) === $versionPath) {
+                    $this->getLogger()->warn(
+                        "Current link is point to {$versionPath}, are you sure to remove it? (yes/no) [no]"
+                    );
+                } else {
+                    $this->getLogger()->info("Directory '{$versionPath}' already exists, remove it? (yes/no) [no]");
+                }
+                $input = trim(fgets(STDIN));
+                if ($input !== "yes") {
+                    $this->getLogger()->info("Cancel");
+                    $this->getApplication()->end(0);
+                    return;
+                }
 
-            $this->getLogger()->info("Remove exists directory {$versionPath}");
-            $this->getShellHelper()->sudo()->rm($versionPath, true);
-        }
-        $this->getShellHelper()->sudo($user)->mkdir($versionPath);
+                $this->getLogger()->info("Remove exists directory {$versionPath}");
+                $this->getShellHelper()->sudo()->rm($versionPath, true);
+            }
+            $this->getShellHelper()->sudo($user)->mkdir($versionPath);
 
-        $this->getShellHelper()->runCommand(
-            'tar -c ./ --exclude=.git |\\
+            $this->getShellHelper()->runCommand(
+                'tar -c ./ --exclude=.git |\\
     sudo -u ' . escapeshellarg($user) . ' tar -x -C ' . escapeshellarg($versionPath)
-        );
+            );
+        }
+
+        if ($templateFiles !== null) {
+            $this->getLogger()->info("Process template files");
+            foreach ($templateFiles as $templateFile) {
+                $this->getLogger()->info("Process template file {$templateFile}");
+                $templateFile = $this->getTemplateHelper()->processTemplateString($templateFile, $this->getParams());
+                $this->getLogger()->info("Real template file path {$templateFile}");
+                $this->getTemplateHelper()->processTemplateToFile($templateFile, $this->getParams());
+            }
+        }
 
         if ($afterDeployScripts !== null) {
             $this->getLogger()->info("Run after deploy scripts");
             foreach ($afterDeployScripts as $afterDeployScript) {
                 $afterDeployScript = strtr($afterDeployScript, ['{{ version_path }}' => $versionPath]);
-                $this->getShellHelper()->runCommand($afterDeployScript);
+                $this->runTemplateCommand($afterDeployScript);
             }
         }
 
@@ -202,16 +287,14 @@ class Deploy extends AbstractCommand
 
     public function actionSwitch()
     {
-        $applicationPath     = $this->getRequestParam('application-path');
-        $user                = $this->getRequestParam('user');
-        $tag                 = $this->getRequestParam('tag');
-        $afterSwitchScripts  = $this->getRequestParam('after-switch-script');
-        $versionsPath        = $this->getVersionsPath($applicationPath);
-        $currentLink         = $this->getCurrentLink($versionsPath);
+        $applicationPath     = $this->getParam('application-path');
+        $user                = $this->getParam('user');
+        $afterSwitchScripts  = $this->getParam('after-switch-script');
+        $currentLink         = $this->getParam('current-link-path');
+        $versionPath         = $this->getParam('version-path');
 
         $applicationFiles = scandir($applicationPath);
 
-        $versionPath = $this->getVersionPath($versionsPath, $tag);
         $versionFiles = scandir($versionPath);
 
         foreach ([&$applicationFiles, &$versionFiles] as &$files) {
@@ -263,10 +346,18 @@ class Deploy extends AbstractCommand
             $this->getLogger()->info("Run after switch scripts");
             foreach ($afterSwitchScripts as $afterSwitchScript) {
                 $afterSwitchScript = strtr($afterSwitchScript, ['{{ version_path }}' => $versionPath]);
-                $this->getShellHelper()->runCommand($afterSwitchScript);
+                $this->runTemplateCommand($afterSwitchScript);
             }
         }
 
         $this->getLogger()->info("Successful complete");
+    }
+
+    public function actionDev()
+    {
+        $this->addRequestParam('skip-git', true);
+        $this->actionInit();
+        $this->actionDeploy();
+        $this->actionSwitch();
     }
 }
