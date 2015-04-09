@@ -231,7 +231,7 @@ class Deploy extends AbstractCommand
         }
 
         if ($beforeDeployScripts !== null) {
-            $this->getLogger()->info("Run before-deploy scripts");
+            $this->getLogger()->info("Run before deploy scripts");
             foreach ($beforeDeployScripts as $beforeDeployScript) {
                 $this->runTemplateCommand($beforeDeployScript);
             }

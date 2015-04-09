@@ -110,11 +110,15 @@ class Application
                 throw new \RuntimeException("yaml extension not loaded");
             }
             $config = yaml_parse_file($configPath);
+        } elseif ($extension === 'json') {
+            if (!function_exists('json_decode')) {
+                throw new \RuntimeException("json extension not loaded");
+            }
+            $json_string = file_get_contents($configPath);
+            $config = json_decode($json_string, true);
         } elseif ($extension === 'php') {
             /** @noinspection PhpIncludeInspection */
             $config = require $configPath;
-        } elseif ($extension === 'ini') {
-            $config = parse_ini_file($configPath, true);
         } else {
             throw new \RuntimeException("Unknown config type {$extension}");
         }

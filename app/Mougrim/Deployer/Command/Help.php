@@ -82,6 +82,9 @@ class Help extends AbstractCommand
             }
 
             foreach ($commandRequestParamsInfo[$actionId] as $paramName => $paramInfo) {
+                if (!is_numeric($paramName)) {
+                    $paramName = "--{$paramName}";
+                }
                 $this->getLogger()->info("\t{$paramName}");
                 foreach(explode("\n", $paramInfo['info']) as $paramInfoLine) {
                     $this->getLogger()->info("\t\t{$paramInfoLine}");
