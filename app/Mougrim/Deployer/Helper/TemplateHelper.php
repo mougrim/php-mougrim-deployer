@@ -14,6 +14,14 @@ class TemplateHelper
         $this->shellHelper = $shellHelper;
     }
 
+    /**
+     * @return ShellHelper
+     */
+    protected function getShellHelper()
+    {
+        return $this->shellHelper;
+    }
+
     private $logger;
 
     /**
@@ -28,16 +36,13 @@ class TemplateHelper
         return $this->logger;
     }
 
-    public function processTemplateToFile($templatePath, array $params, $destinationPath = null)
+    public function processTemplateToFile($user, $templatePath, array $params, $destinationPath = null)
     {
         if (!file_exists($templatePath)) {
             throw new \RuntimeException("Template '{$templatePath}' not exists");
         }
         if (!is_readable($templatePath)) {
             throw new \RuntimeException("Template '{$templatePath}' not readable");
-        }
-        if (!is_writable($templatePath)) {
-            throw new \RuntimeException("Template '{$templatePath}' not writable");
         }
 
         $this->getLogger()->info("Process template {$templatePath}");
@@ -47,17 +52,19 @@ class TemplateHelper
         } else {
             $this->getLogger()->info("Destination path {$destinationPath}");
         }
+
         $destinationDir = dirname($destinationPath);
         if (!file_exists($destinationDir)) {
             throw new \RuntimeException("Destination dir '{$destinationDir}' not exists");
         }
-        if (!is_writable($destinationDir)) {
-            throw new \RuntimeException("Destination dir '{$destinationDir}' not writable");
+        $this->getShellHelper()->sudo($user)->checkIsWritable($destinationDir);
+        if (file_exists($destinationPath)) {
+            $this->getShellHelper()->sudo($user)->checkIsWritable($destinationPath);
         }
 
         $template = file_get_contents($templatePath);
         $template = $this->processTemplateString($template, $params);
-        file_put_contents($destinationPath, $template);
+        $this->getShellHelper()->sudo($user)->writeFile($destinationPath, $template);
         $this->getLogger()->info("Process complete");
 
         return $destinationDir;

@@ -270,7 +270,7 @@ class Deploy extends AbstractCommand
                 $this->getLogger()->info("Process template file {$templateFile}");
                 $templateFile = $this->getTemplateHelper()->processTemplateString($templateFile, $this->getParams());
                 $this->getLogger()->info("Real template file path {$templateFile}");
-                $this->getTemplateHelper()->processTemplateToFile($templateFile, $this->getParams());
+                $this->getTemplateHelper()->processTemplateToFile($user, $templateFile, $this->getParams());
             }
         }
 

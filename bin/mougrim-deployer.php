@@ -18,9 +18,14 @@ use Mougrim\Deployer\Kernel\Application;
 
 Logger::configure(require_once __DIR__ . '/../config/logger.php');
 
-$request = new Request();
-$request->setRawRequest($argv);
-$application = new Application();
-$application->setControllersNamespace('\Mougrim\Deployer\Command');
-$application->setRequest($request);
-$application->run();
+try {
+    $request = new Request();
+    $request->setRawRequest($argv);
+    $application = new Application();
+    $application->setControllersNamespace('\Mougrim\Deployer\Command');
+    $application->setRequest($request);
+    $application->run();
+} catch (Exception $exception) {
+    Logger::getLogger('dispatcher')->error("Uncaught exception:", $exception);
+    exit(1);
+}

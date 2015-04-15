@@ -1,6 +1,12 @@
 {
     "name": "mougrim/deployer",
     "description": "Simple deploy your project",
+    "keywords": [
+        "deployer",
+        "deploy",
+        "php"
+    ],
+    "homepage": "https://github.com/mougrim/php-mougrim-deployer",
     "type": "project",
     "license": "MIT",
     "authors": [
@@ -9,6 +15,11 @@
             "email": "rinat@mougrim.ru"
         }
     ],
+    "support": {
+        "issues": "https://github.com/mougrim/php-mougrim-deployer/issues?state=open",
+        "wiki": "https://github.com/mougrim/php-mougrim-deployer/wiki",
+        "source": "https://github.com/mougrim/php-mougrim-deployer"
+    },
     "require": {
         "php": ">=5.5.0",
         "mitallast/php-logger": "1.0.2"
