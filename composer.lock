@@ -1,27 +1,27 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b708a6cf40d40dd880453ab26ca0a493",
+    "hash": "a7fd313868338672473bb060e6865049",
     "packages": [
         {
-            "name": "mitallast/php-logger",
-            "version": "1.0.2",
+            "name": "mougrim/php-logger",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/mitallast/php-logger.git",
-                "reference": "d59e49d1b20feaada68f397b55438d56b1613dc5"
+                "url": "https://github.com/mougrim/php-logger.git",
+                "reference": "3e03d674c7c75e46621cee7a17026aa53cd1e14a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mitallast/php-logger/zipball/d59e49d1b20feaada68f397b55438d56b1613dc5",
-                "reference": "d59e49d1b20feaada68f397b55438d56b1613dc5",
+                "url": "https://api.github.com/repos/mougrim/php-logger/zipball/3e03d674c7c75e46621cee7a17026aa53cd1e14a",
+                "reference": "3e03d674c7c75e46621cee7a17026aa53cd1e14a",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2.7"
+                "php": ">=5.5.0"
             },
             "require-dev": {
                 "ext-pcntl": "*",
@@ -30,12 +30,8 @@
             },
             "type": "library",
             "autoload": {
-                "psr-0": {
-                    "Logger": [
-                        "src/",
-                        "src/appenders",
-                        "src/layouts"
-                    ]
+                "psr-4": {
+                    "Mougrim\\Logger\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -46,10 +42,14 @@
                 {
                     "name": "mitallast",
                     "email": "mitallast@gmail.com"
+                },
+                {
+                    "name": "Mougrim",
+                    "email": "rinat@mougrim.ru"
                 }
             ],
             "description": "Simple and fast php logging library",
-            "time": "2013-11-25 09:29:19"
+            "time": "2015-09-03 19:27:34"
         }
     ],
     "packages-dev": [],

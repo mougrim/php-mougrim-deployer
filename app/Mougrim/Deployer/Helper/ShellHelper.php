@@ -1,6 +1,8 @@
 <?php
 namespace Mougrim\Deployer\Helper;
 
+use Mougrim\Logger\Logger;
+
 /**
  * @package Mougrim\Deployer\Helper
  * @author  Mougrim <rinat@mougrim.ru>
@@ -12,12 +14,12 @@ class ShellHelper
     private $sudoUser;
 
     /**
-     * @return \Logger
+     * @return Logger
      */
     public function getLogger()
     {
         if ($this->logger === null) {
-            $this->logger = \Logger::getLogger('shell-helper');
+            $this->logger = Logger::getLogger('shell-helper');
         }
 
         return $this->logger;

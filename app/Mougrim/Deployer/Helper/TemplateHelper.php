@@ -1,6 +1,8 @@
 <?php
 namespace Mougrim\Deployer\Helper;
 
+use Mougrim\Logger\Logger;
+
 /**
  * @package Mougrim\Deployer\Helper
  * @author Mougrim <rinat@mougrim.ru>
@@ -25,12 +27,12 @@ class TemplateHelper
     private $logger;
 
     /**
-     * @return \Logger
+     * @return Logger
      */
     protected function getLogger()
     {
         if ($this->logger === null) {
-            $this->logger = \Logger::getLogger('template-helper');
+            $this->logger = Logger::getLogger('template-helper');
         }
 
         return $this->logger;

@@ -2,6 +2,7 @@
 namespace Mougrim\Deployer\Kernel;
 
 use Mougrim\Deployer\Helper\ShellHelper;
+use Mougrim\Logger\Logger;
 
 /**
  * @package Mougrim\Deployer
@@ -13,12 +14,12 @@ class AbstractCommand
     private $logger;
 
     /**
-     * @return \Logger
+     * @return Logger
      */
     public function getLogger()
     {
         if ($this->logger === null) {
-            $this->logger = \Logger::getLogger($this->loggerName);
+            $this->logger = Logger::getLogger($this->loggerName);
         }
 
         return $this->logger;

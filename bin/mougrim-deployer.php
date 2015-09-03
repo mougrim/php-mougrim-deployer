@@ -15,6 +15,7 @@ if (file_exists($autoloadPath)) {
 
 use Mougrim\Deployer\Kernel\Request;
 use Mougrim\Deployer\Kernel\Application;
+use Mougrim\Logger\Logger;
 
 Logger::configure(require_once __DIR__ . '/../config/logger.php');
 
