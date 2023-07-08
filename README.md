@@ -1,5 +1,10 @@
 # php-mougrim-deployer
+
 `php-mougrim-deployer` is tool for seamless deploy you git project.
+
+[![Latest Stable Version](https://poser.pugx.org/mougrim/deployer/version)](https://packagist.org/packages/mougrim/deployer)
+[![Latest Unstable Version](https://poser.pugx.org/mougrim/deployer/v/unstable)](https://packagist.org/packages/mougrim/deployer)
+[![License](https://poser.pugx.org/mougrim/deployer/license)](https://packagist.org/packages/mougrim/deployer)
 
 ## Benefits
 

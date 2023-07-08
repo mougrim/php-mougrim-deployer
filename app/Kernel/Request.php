@@ -1,51 +1,44 @@
 <?php
+declare(strict_types=1);
+
 namespace Mougrim\Deployer\Kernel;
 
 /**
- * @package Mougrim\Deployer\Kernel
- * @author  Mougrim <rinat@mougrim.ru>
+ * @author Mougrim <rinat@mougrim.ru>
  */
 class Request
 {
-    private $rawRequest;
-    private $requestParams;
+    private array $requestParams;
 
     /**
      * @param array $rawRequest $argv
      */
-    public function setRawRequest(array $rawRequest)
-    {
-        if ($this->rawRequest !== null) {
-            throw new \RuntimeException("rawRequest is already set");
-        }
-        $this->rawRequest = $rawRequest;
+    public function __construct(
+        private readonly array $rawRequest,
+    ) {
     }
 
     /**
-     * @return array $argv
+     * @return array<int, string> $argv
      */
-    public function getRawRequest()
+    public function getRawRequest(): array
     {
-        if ($this->rawRequest === null) {
-            throw new \RuntimeException("rawRequest is not set");
-        }
-
         return $this->rawRequest;
     }
 
     /**
-     * @return array
+     * @return array<int|string, string>
      */
-    public function getRequestParams()
+    public function getRequestParams(): array
     {
-        if ($this->requestParams === null) {
+        if (!isset($this->requestParams)) {
             $this->requestParams = $this->populateRequestParams();
         }
 
         return $this->requestParams;
     }
 
-    public function getRequestParam($name, $defaultValue = null)
+    public function getRequestParam(string|int $name, ?string $defaultValue = null): ?string
     {
         $requestParams = $this->getRequestParams();
         if (!isset($requestParams[$name]) && !array_key_exists($name, $requestParams)) {
@@ -55,7 +48,7 @@ class Request
         return $requestParams[$name];
     }
 
-    private function populateRequestParams()
+    private function populateRequestParams(): array
     {
         $rawRequest = $this->getRawRequest();
         array_shift($rawRequest);
