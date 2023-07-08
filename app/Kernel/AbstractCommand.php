@@ -126,7 +126,7 @@ abstract class AbstractCommand
         return $this->params[$this->actionId];
     }
 
-    public function getParam(string|int $name): string|null|array
+    public function getParam(string|int $name): string|null|array|bool
     {
         $params = $this->getParams();
         if (!$this->paramExists($name)) {
