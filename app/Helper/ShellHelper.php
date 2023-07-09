@@ -1,31 +1,31 @@
 <?php
+declare(strict_types=1);
+
 namespace Mougrim\Deployer\Helper;
 
-use Mougrim\Logger\Logger;
+use Mougrim\Deployer\Logger\Logger;
+use RuntimeException;
+use function escapeshellarg;
+use function fclose;
+use function is_resource;
+use function proc_close;
+use function proc_open;
+use function trim;
 
 /**
- * @package Mougrim\Deployer\Helper
- * @author  Mougrim <rinat@mougrim.ru>
+ * @author Mougrim <rinat@mougrim.ru>
  */
 class ShellHelper
 {
-    private $logger;
-    private $sudo = false;
-    private $sudoUser;
+    private bool $sudo = false;
+    private ?string $sudoUser = null;
 
-    /**
-     * @return Logger
-     */
-    public function getLogger()
-    {
-        if ($this->logger === null) {
-            $this->logger = Logger::getLogger('shell-helper');
-        }
-
-        return $this->logger;
+    public function __construct(
+        private readonly Logger $logger,
+    ) {
     }
 
-    public function runCommand($command)
+    public function runCommand(string $command): void
     {
         if ($this->sudo) {
             $commandPrefix = 'sudo ';
@@ -38,16 +38,16 @@ class ShellHelper
             $this->sudo     = false;
             $this->sudoUser = null;
         }
-        $this->getLogger()->info("Run '{$command}'");
+        $this->logger->info("Run '{$command}'");
 
         $descriptorsSpec = [
             0 => ["pipe", "r"], // stdin is a pipe that the child will read from
             1 => ["pipe", "w"], // stdout is a pipe that the child will write to
             2 => ["pipe", "w"], // stderr is a pipe that the child will write to
         ];
-        $resource = proc_open($command, $descriptorsSpec, $pipes);
+        $resource        = proc_open($command, $descriptorsSpec, $pipes);
         if (!is_resource($resource)) {
-            throw new \RuntimeException("Can't create resource for command '{$command}'");
+            throw new RuntimeException("Can't create resource for command '{$command}'");
         }
 
         fclose($pipes[0]);
@@ -58,31 +58,31 @@ class ShellHelper
         $result = proc_close($resource);
 
         if (!empty($output)) {
-            $this->getLogger()->info("Output:\n" . $output);
+            $this->logger->info("Output:\n" . $output);
         } else {
-            $this->getLogger()->info("Empty output");
+            $this->logger->info("Empty output");
         }
         if (!empty($error)) {
-            $this->getLogger()->info("Error output:\n" . $error);
+            $this->logger->info("Error output:\n" . $error);
         }
         if ($result !== 0) {
-            throw new \RuntimeException("Command '{$command}' executed with error code: {$result}");
+            throw new RuntimeException("Command '{$command}' executed with error code: {$result}");
         }
     }
 
-    public function sudo($user = 'root')
+    public function sudo(string $user = 'root'): static
     {
         $this->sudo     = true;
         $this->sudoUser = $user;
         return $this;
     }
 
-    public function mkdir($directory, $recursive = false)
+    public function mkdir(string $directory, bool $recursive = false): void
     {
         $this->runCommand('mkdir ' . ($recursive ? '-p ' : '') . escapeshellarg($directory));
     }
 
-    public function chown($user, $group, $directory, $recursive = false)
+    public function chown(string $user, string $group, string $directory, bool $recursive = false): void
     {
         $this->runCommand(
             'chown ' . ($recursive ? '-R ' : '') .
@@ -91,27 +91,27 @@ class ShellHelper
         );
     }
 
-    public function rm($path, $recursive = false)
+    public function rm(string $path, bool $recursive = false): void
     {
         $this->runCommand('rm -f' . ($recursive ? 'r' : '') . ' ' . escapeshellarg($path));
     }
 
-    public function ln($link, $destination)
+    public function ln(string $link, string $destination): void
     {
         $this->runCommand('ln -sfT ' . escapeshellarg($destination) . ' ' . escapeshellarg($link));
     }
 
-    public function checkIsWritable($path)
+    public function checkIsWritable(string $path): void
     {
-        $path = escapeshellarg($path);
+        $path         = escapeshellarg($path);
         $checkCommand = "if [ ! -w {$path} ]; then echo 'Path not writable'; exit 1; else echo 'Path writable'; fi";
         $this->runCommand('bash -c ' . escapeshellarg($checkCommand));
     }
 
-    public function writeFile($path, $content)
+    public function writeFile(string $path, string $content): void
     {
-        $path = escapeshellarg($path);
-        $content = escapeshellarg($content);
+        $path         = escapeshellarg($path);
+        $content      = escapeshellarg($content);
         $writeCommand = "echo {$content} > {$path}";
         $this->runCommand('bash -c ' . escapeshellarg($writeCommand));
     }
