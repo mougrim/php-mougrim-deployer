@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Mougrim\Deployer\Command;
 
 use Mougrim\Deployer\Helper\TemplateHelper;
+use Mougrim\Deployer\Helper\TemplateShellHelper;
 use Mougrim\Deployer\Kernel\AbstractCommand;
 use function escapeshellarg;
 use function fgets;
@@ -175,13 +176,25 @@ class Deploy extends AbstractCommand
     private function getTemplateHelper(): TemplateHelper
     {
         if (!isset($this->templateHelper)) {
-            $this->templateHelper = new TemplateHelper(
+            $this->templateHelper = new TemplateHelper();
+        }
+
+        return $this->templateHelper;
+    }
+
+    private TemplateShellHelper $templateShellHelper;
+
+    private function getTemplateShellHelper(): TemplateShellHelper
+    {
+        if (!isset($this->templateShellHelper)) {
+            $this->templateShellHelper = new TemplateShellHelper(
                 shellHelper: $this->shellHelper,
+                templateHelper: $this->getTemplateHelper(),
                 logger: $this->logger,
             );
         }
 
-        return $this->templateHelper;
+        return $this->templateShellHelper;
     }
 
     public function runTemplateCommand($command): void
@@ -281,7 +294,7 @@ class Deploy extends AbstractCommand
                 $this->logger->info("Process template file {$templateFile}");
                 $templateFile = $this->getTemplateHelper()->processTemplateString($templateFile, $this->getParams());
                 $this->logger->info("Real template file path {$templateFile}");
-                $this->getTemplateHelper()->processTemplateToFile($user, $templateFile, $this->getParams());
+                $this->getTemplateShellHelper()->processTemplateToFile($user, $templateFile, $this->getParams());
             }
         }
 
