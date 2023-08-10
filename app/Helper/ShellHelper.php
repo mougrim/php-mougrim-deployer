@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Mougrim\Deployer\Helper;
 
-use Mougrim\Deployer\Logger\Logger;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use function escapeshellarg;
 use function fclose;
@@ -21,7 +21,7 @@ class ShellHelper
     private ?string $sudoUser = null;
 
     public function __construct(
-        private readonly Logger $logger,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
