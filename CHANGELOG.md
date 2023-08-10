@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use LoggerInterface
 - Extract TemplateHelper::processTemplateToFile() to TemplateShellHelper
 
+### Removed
+- Stop creating links from application path to version files and folders
+
 ## [v0.3.0]
 
 ### Changed
