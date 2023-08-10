@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Mougrim\Deployer\Kernel;
 
 use Mougrim\Deployer\Helper\ShellHelper;
-use Mougrim\Deployer\Logger\Logger;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use SplFileInfo;
 use function array_merge;
@@ -29,7 +29,7 @@ class Application
     public function __construct(
         private readonly Request $request,
         private readonly string $controllersNamespace,
-        private readonly Logger $logger,
+        private readonly LoggerInterface $logger,
     ) {
         $this->defaultCommand = 'help';
         $this->defaultAction  = 'index';

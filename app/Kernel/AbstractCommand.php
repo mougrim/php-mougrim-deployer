@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Mougrim\Deployer\Kernel;
 
 use Mougrim\Deployer\Helper\ShellHelper;
-use Mougrim\Deployer\Logger\Logger;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use function array_diff;
 use function array_keys;
@@ -20,7 +20,7 @@ abstract class AbstractCommand
     public function __construct(
         protected readonly Application $application,
         protected readonly ShellHelper $shellHelper,
-        protected readonly Logger $logger,
+        protected readonly LoggerInterface $logger,
         protected array $requestParams,
         protected readonly string $id,
         protected readonly string $actionId,

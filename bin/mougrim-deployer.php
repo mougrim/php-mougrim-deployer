@@ -17,12 +17,12 @@ if (file_exists($autoloadPath)) {
     require_once dirname(__DIR__, 3) . '/autoload.php';
 }
 
-use Mougrim\Deployer\Kernel\Request;
 use Mougrim\Deployer\Kernel\Application;
-use Mougrim\Deployer\Logger\Logger;
+use Mougrim\Deployer\Kernel\Request;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
-/** @var Logger $logger */
+/** @var LoggerInterface $logger */
 $logger = require __DIR__ . '/../config/logger.php';
 
 try {

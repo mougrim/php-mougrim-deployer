@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Mougrim\Deployer\Helper;
 
-use Mougrim\Deployer\Logger\Logger;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use function dirname;
 use function file_exists;
@@ -17,7 +17,7 @@ class TemplateHelper
 {
     public function __construct(
         private readonly ShellHelper $shellHelper,
-        private readonly Logger $logger,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
