@@ -9,9 +9,7 @@ use Mougrim\Deployer\Kernel\AbstractCommand;
 use function escapeshellarg;
 use function fgets;
 use function file_exists;
-use function in_array;
 use function realpath;
-use function scandir;
 use function strtr;
 use function trim;
 use const STDIN;
@@ -311,60 +309,16 @@ class Deploy extends AbstractCommand
 
     public function actionSwitch(): void
     {
-        $applicationPath    = (string) $this->getParam('application-path');
         $user               = (string) $this->getParam('user');
         $afterSwitchScripts = $this->getParam('after-switch-script');
         $currentLink        = (string) $this->getParam('current-link-path');
         $versionPath        = (string) $this->getParam('version-path');
 
-        $applicationFiles = scandir($applicationPath);
-
-        $versionFiles = scandir($versionPath);
-
-        foreach ([&$applicationFiles, &$versionFiles] as &$files) {
-            foreach ([".", "..", "versions"] as $excludeFile) {
-                $key = array_search($excludeFile, $files);
-                if ($key !== false) {
-                    unset($files[$key]);
-                }
-            }
-        }
-
-        $this->logger->info("Create new links");
-        $linksCreated = false;
-        foreach ($versionFiles as $versionFile) {
-            if (!in_array($versionFile, $applicationFiles)) {
-                $this->shellHelper->sudo($user)->ln(
-                    "{$applicationPath}/{$versionFile}",
-                    "$currentLink/{$versionFile}"
-                );
-                $linksCreated = true;
-            }
-        }
-
-        if ($linksCreated === false) {
-            $this->logger->info("No new links found");
-        }
-
-
         $this->logger->info("Switch version");
         $this->shellHelper->sudo($user)->ln(
-            $currentLink,
-            $versionPath
+            link: $currentLink,
+            destination: $versionPath
         );
-
-        $this->logger->info("Remove old links");
-        $linksRemoved = false;
-        foreach ($applicationFiles as $applicationFile) {
-            if (!in_array($applicationFile, $versionFiles)) {
-                $linksRemoved = true;
-                $this->shellHelper->sudo($user)->rm("{$applicationPath}/{$applicationFile}");
-            }
-        }
-
-        if ($linksRemoved === false) {
-            $this->logger->info("No links to remove found");
-        }
 
         if ($afterSwitchScripts !== null) {
             $this->logger->info("Run after switch scripts");
