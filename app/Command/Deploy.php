@@ -158,6 +158,7 @@ class Deploy extends AbstractCommand
         $actionAdditionalParams['versions-path'] = "{$applicationPath}/versions";
         if ($this->requestParamExists('tag')) {
             $tag                                    = (string) $this->getRequestParam('tag');
+            $actionAdditionalParams['version']      = $tag;
             $actionAdditionalParams['version-path'] = "{$actionAdditionalParams['versions-path']}/{$tag}";
         }
         $actionAdditionalParams['current-link-path'] = "{$actionAdditionalParams['versions-path']}/current";
