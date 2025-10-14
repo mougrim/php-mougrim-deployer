@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.4.1]
+
+### Added
+- Add version to the additional deploy parameters ([#6](https://github.com/mougrim/php-mougrim-deployer/pull/6))
+
 ## [v0.4.0]
 
 ### Changed
@@ -29,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add badges to README.md ([#1](https://github.com/mougrim/php-mougrim-deployer/pull/1))
 - Chane placeholders in param values using param values ([#1](https://github.com/mougrim/php-mougrim-deployer/pull/1))
 
-[unreleased]: https://github.com/mougrim/php-mougrim-deployer/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/mougrim/php-mougrim-deployer/compare/v0.4.1...HEAD
+[v0.4.1]: https://github.com/mougrim/php-mougrim-deployer/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://github.com/mougrim/php-mougrim-deployer/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/mougrim/php-mougrim-deployer/compare/v0.2.2...v0.3.0
